@@ -45,7 +45,7 @@ class Breakout:
         # Create ball
         self.ball = self.canvas.create_oval(390, 360, 410, 380, fill='red')
         self.ball_x_change = random.choice([-2.5, 2.5])
-        self.ball_y_change = -5
+        self.ball_y_change = -10
 
         # Draw bricks
         self.bricks = []
@@ -95,8 +95,8 @@ class Breakout:
             self.ball_y_change = -abs(self.ball_y_change)
 
     def fingers_up(self, hand_landmarks):
+        # Exclude thumb by adjusting the range of finger tips
         finger_tips = [
-            mp_hands.HandLandmark.THUMB_TIP,
             mp_hands.HandLandmark.INDEX_FINGER_TIP,
             mp_hands.HandLandmark.MIDDLE_FINGER_TIP,
             mp_hands.HandLandmark.RING_FINGER_TIP,
@@ -105,7 +105,7 @@ class Breakout:
         count = 0
         for tip in finger_tips:
             tip_index = tip
-            pip_index = tip - 2 if tip != mp_hands.HandLandmark.THUMB_TIP else tip - 1
+            pip_index = tip - 2  # Correctly points to the PIP joint for all non-thumb fingers
             if hand_landmarks.landmark[tip_index].y < hand_landmarks.landmark[pip_index].y:
                 count += 1
         return count
@@ -124,17 +124,17 @@ class Breakout:
                     self.canvas.coords(self.paddle, paddle_x - 50, 375, paddle_x + 50, 395)
 
                     fingers_counted = self.fingers_up(hand_landmarks)
-                    if self.game_over or self.won:
-                        if fingers_counted == 2:
-                            if self.reset_gesture_frames >= self.required_gesture_frames:
-                                self.setup_game()  # Restart if two fingers are consistently shown
-                            else:
-                                self.reset_gesture_frames += 1
-                        elif fingers_counted == 5:
-                            if self.exit_gesture_frames >= self.required_gesture_frames:
-                                self.master.quit()  # Exit if five fingers are consistently shown
-                            else:
-                                self.exit_gesture_frames += 1
+                    if fingers_counted == 2:
+                        if self.reset_gesture_frames >= self.required_gesture_frames:
+                            print(fingers_counted)
+                            self.setup_game()  # Restart if two fingers are consistently shown
+                        else:
+                            self.reset_gesture_frames += 1
+                    elif fingers_counted == 4:
+                        if self.exit_gesture_frames >= self.required_gesture_frames:
+                            self.master.quit()  # Exit if five fingers are consistently shown
+                        else:
+                            self.exit_gesture_frames += 1
                     else:
                         self.reset_gesture_frames = 0
                         self.exit_gesture_frames = 0
